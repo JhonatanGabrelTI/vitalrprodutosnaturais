@@ -4,7 +4,7 @@ import { readCatalog } from '@/lib/catalog-server';
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const catalog = await readCatalog();
   const base =
-    'https://vitale-produtos-naturais-ibaiti.nutty-degu-4811.chatgpt.site';
+    'https://vitale-produtos-naturais-ibaiti.drchumbadaebalanciam.chatgpt.site';
   return [
     { url: base, changeFrequency: 'weekly', priority: 1 },
     { url: `${base}/produtos`, changeFrequency: 'daily', priority: 0.9 },

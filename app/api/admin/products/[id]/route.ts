@@ -31,7 +31,7 @@ export async function PUT(
         clean(body.name),
         clean(body.slug),
         clean(body.categoryId) || null,
-        clean(body.imageUrl) || '/vitale-hero.png',
+        clean(body.imageUrl) || '/vitale-hero.webp',
         clean(body.shortDescription),
         clean(body.description),
         clean(body.ingredients),

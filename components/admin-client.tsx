@@ -119,6 +119,7 @@ export function AdminClient({
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [categoryName, setCategoryName] = useState('');
   const [categorySlug, setCategorySlug] = useState('');
+  const [categoryDescription, setCategoryDescription] = useState('');
   const load = async () => {
     const response = await fetch('/api/admin/data');
     if (!response.ok) throw new Error('Não foi possível carregar o painel.');
@@ -246,6 +247,7 @@ export function AdminClient({
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({
         name: categoryName,
+        description: categoryDescription,
         slug:
           categorySlug ||
           categoryName
@@ -259,6 +261,7 @@ export function AdminClient({
     if (response.ok) {
       setCategoryName('');
       setCategorySlug('');
+      setCategoryDescription('');
       await load();
       notify('Categoria adicionada.');
     }
@@ -439,6 +442,7 @@ export function AdminClient({
                   <span>Produto</span>
                   <span>Categoria</span>
                   <span>Preço</span>
+                  <span>Venda</span>
                   <span>Estoque</span>
                   <span>Status</span>
                   <span />
@@ -447,7 +451,7 @@ export function AdminClient({
                   <div className="admin-row" key={product.id}>
                     <span className="product-cell">
                       <Image
-                        src={product.imageUrl || '/vitale-hero.png'}
+                        src={product.imageUrl || '/vitale-hero.webp'}
                         alt=""
                         width={48}
                         height={48}
@@ -461,7 +465,22 @@ export function AdminClient({
                     <span>
                       {money(product.salePriceCents ?? product.priceCents)}
                     </span>
-                    <span>{product.stockQty}</span>
+                    <span className="sale-type">
+                      {product.saleType === 'weight'
+                        ? 'Por peso'
+                        : product.saleType === 'package'
+                          ? 'Pacote'
+                          : 'Unidade'}
+                      <small>{product.unitLabel}</small>
+                    </span>
+                    <span className="stock-cell">
+                      <strong>{product.stockQty}</strong>
+                      <small>
+                        {product.saleType === 'weight'
+                          ? 'gramas'
+                          : 'disponíveis'}
+                      </small>
+                    </span>
                     <span>
                       <i
                         className={
@@ -496,7 +515,7 @@ export function AdminClient({
                 <div className="card-title">
                   <div>
                     <small>Organização</small>
-                    <h2>Categorias</h2>
+                    <h2>Categorias da loja</h2>
                   </div>
                 </div>
                 <div className="category-list">
@@ -505,6 +524,7 @@ export function AdminClient({
                       <div>
                         <strong>{category.name}</strong>
                         <small>/{category.slug}</small>
+                        {category.description && <p>{category.description}</p>}
                       </div>
                       <span>
                         {
@@ -539,6 +559,14 @@ export function AdminClient({
                     value={categorySlug}
                     onChange={(e) => setCategorySlug(e.target.value)}
                     placeholder="gerado automaticamente"
+                  />
+                </label>
+                <label>
+                  Descrição
+                  <textarea
+                    value={categoryDescription}
+                    onChange={(e) => setCategoryDescription(e.target.value)}
+                    placeholder="Ex.: suplementos e acessórios para o treino"
                   />
                 </label>
                 <button>Adicionar categoria</button>
@@ -734,8 +762,14 @@ function ProductFormView({
         </label>
         <label htmlFor="admin-product-category">
           Categoria
-          <NativeSelect id="admin-product-category" {...field('categoryId')}>
-            <NativeSelectOption value="">Sem categoria</NativeSelectOption>
+          <NativeSelect
+            id="admin-product-category"
+            required
+            {...field('categoryId')}
+          >
+            <NativeSelectOption value="">
+              Selecione uma categoria
+            </NativeSelectOption>
             {categories.map((item) => (
               <NativeSelectOption key={item.id} value={item.id}>
                 {item.name}
@@ -746,9 +780,13 @@ function ProductFormView({
         <label htmlFor="admin-product-sale-type">
           Tipo de venda
           <NativeSelect id="admin-product-sale-type" {...field('saleType')}>
-            <NativeSelectOption value="unit">Unidade</NativeSelectOption>
-            <NativeSelectOption value="weight">Peso</NativeSelectOption>
-            <NativeSelectOption value="package">Pacote</NativeSelectOption>
+            <NativeSelectOption value="unit">Unidade (cada)</NativeSelectOption>
+            <NativeSelectOption value="weight">
+              Peso (g ou kg)
+            </NativeSelectOption>
+            <NativeSelectOption value="package">
+              Pacote / embalagem
+            </NativeSelectOption>
           </NativeSelect>
         </label>
         <label>
@@ -761,11 +799,29 @@ function ProductFormView({
         </label>
         <label>
           Unidade exibida
-          <input {...field('unitLabel')} placeholder="100 g" />
+          <input
+            required
+            {...field('unitLabel')}
+            placeholder={
+              form.saleType === 'weight'
+                ? 'Ex.: 100 g ou 1 kg'
+                : form.saleType === 'package'
+                  ? 'Ex.: pacote 500 g'
+                  : 'Ex.: unidade ou pote 300 g'
+            }
+          />
+          <small className="field-help">
+            É o formato que o cliente verá na vitrine.
+          </small>
         </label>
         <label>
-          Estoque
-          <input type="number" min="0" {...field('stockQty')} />
+          Quantidade em estoque
+          <input required type="number" min="0" {...field('stockQty')} />
+          <small className="field-help">
+            {form.saleType === 'weight'
+              ? 'Informe o total em gramas. Ex.: 5000 equivale a 5 kg.'
+              : 'Informe quantas unidades ou pacotes estão disponíveis.'}
+          </small>
         </label>
         <label>
           Quantidade mínima
@@ -804,8 +860,11 @@ function ProductFormView({
           <textarea {...field('nutrition')} />
         </label>
         <label className="full">
-          Variações — uma por linha no formato “100 g=12,00”
+          Tamanhos e preços — uma opção por linha
           <textarea {...field('variants')} />
+          <small className="field-help">
+            Use o formato “100 g=12,00”, “500 g=49,90” ou “1 kg=89,90”.
+          </small>
         </label>
         <div className="checks full">
           <label>

@@ -4,13 +4,16 @@ Loja online responsiva para catálogo, carrinho e finalização de pedidos pelo 
 
 ## Recursos
 
-- Catálogo com busca, categorias, ordenação, disponibilidade e promoções.
+- Catálogo demonstrativo com 20 itens em 7 categorias, incluindo creatina,
+  whey protein, snacks, castanhas, grãos, chás e ingredientes naturais.
+- Busca, categorias, ordenação, disponibilidade e promoções.
 - Produtos por unidade, pacote ou peso, com variações e preço automático.
 - Carrinho persistente no dispositivo e mensagem consolidada para o WhatsApp.
 - Pedidos registrados no banco D1 com acompanhamento de status.
-- Painel administrativo para produtos, categorias, pedidos e configurações da loja.
+- Painel administrativo para estoque, unidade/peso/pacote, variações de tamanho,
+  categorias, pedidos e configurações da loja.
 - Autenticação do painel pelo acesso seguro do OpenAI Sites.
-- SEO básico, sitemap, robots.txt e experiência responsiva.
+- Animações suaves, SEO básico, sitemap, robots.txt e experiência responsiva.
 
 ## Desenvolvimento
 

@@ -57,10 +57,10 @@ export function CatalogClient({
           <ArrowLeft size={17} /> Voltar para o início
         </Link>
         <span className="eyebrow green">Catálogo Vitale</span>
-        <h1>Encontre a sua próxima escolha natural.</h1>
+        <h1>Do natural à performance, tudo em um só lugar.</h1>
         <p>
-          Busque, filtre e escolha o peso ou a embalagem antes de adicionar ao
-          carrinho.
+          Explore suplementos, proteínas, snacks, castanhas, grãos, chás e
+          ingredientes. Escolha o tamanho antes de adicionar ao carrinho.
         </p>
       </section>
       <section className="catalog-layout">
@@ -76,7 +76,7 @@ export function CatalogClient({
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Ex.: castanhas"
+                placeholder="Ex.: creatina, whey, castanhas"
               />
             </div>
           </label>

@@ -2,11 +2,13 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { Menu, Search, ShoppingBag } from 'lucide-react';
+import { Menu, Search, ShoppingBag, X } from 'lucide-react';
 import { useCart } from '@/lib/cart';
+import { useState } from 'react';
 
 export function SiteHeader() {
   const cart = useCart();
+  const [menuOpen, setMenuOpen] = useState(false);
   return (
     <>
       <div className="demo-bar">
@@ -44,13 +46,41 @@ export function SiteHeader() {
             aria-label="Abrir carrinho"
           >
             <ShoppingBag size={19} />
-            <span>{cart.count}</span>
+            <span key={cart.count}>{cart.count}</span>
           </button>
-          <button className="mobile-menu" aria-label="Menu">
-            <Menu size={21} />
+          <button
+            className="mobile-menu"
+            aria-label={menuOpen ? 'Fechar menu' : 'Abrir menu'}
+            aria-expanded={menuOpen}
+            onClick={() => setMenuOpen((current) => !current)}
+          >
+            {menuOpen ? <X size={21} /> : <Menu size={21} />}
           </button>
         </div>
       </header>
+      <nav
+        className={`mobile-nav ${menuOpen ? 'open' : ''}`}
+        aria-label="Navegação para celular"
+      >
+        <Link href="/" onClick={() => setMenuOpen(false)}>
+          Início
+        </Link>
+        <Link href="/produtos" onClick={() => setMenuOpen(false)}>
+          Todos os produtos
+        </Link>
+        <Link
+          href="/produtos?categoria=suplementos-fitness"
+          onClick={() => setMenuOpen(false)}
+        >
+          Linha fitness
+        </Link>
+        <Link href="/#categorias" onClick={() => setMenuOpen(false)}>
+          Categorias
+        </Link>
+        <Link href="/#contato" onClick={() => setMenuOpen(false)}>
+          Contato
+        </Link>
+      </nav>
       {cart.notice && (
         <output className="cart-notice" aria-live="polite">
           {cart.notice}

@@ -4,6 +4,6 @@ export default function robots(): MetadataRoute.Robots {
   return {
     rules: { userAgent: '*', allow: '/', disallow: ['/admin/', '/api/admin/'] },
     sitemap:
-      'https://vitale-produtos-naturais-ibaiti.nutty-degu-4811.chatgpt.site/sitemap.xml',
+      'https://vitale-produtos-naturais-ibaiti.drchumbadaebalanciam.chatgpt.site/sitemap.xml',
   };
 }

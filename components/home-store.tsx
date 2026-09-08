@@ -4,6 +4,7 @@ import Link from 'next/link';
 import {
   ArrowRight,
   AtSign,
+  Dumbbell,
   Leaf,
   MapPin,
   MessageCircle,
@@ -20,8 +21,8 @@ import { ProductCard } from './product-card';
 export function HomeStore({ catalog }: { catalog: CatalogPayload }) {
   const featured = catalog.products
     .filter((p) => p.featured || p.promotion)
-    .slice(0, 3);
-  const products = featured.length ? featured : catalog.products.slice(0, 3);
+    .slice(0, 6);
+  const products = featured.length ? featured : catalog.products.slice(0, 6);
   return (
     <main>
       <SiteHeader />
@@ -35,32 +36,77 @@ export function HomeStore({ catalog }: { catalog: CatalogPayload }) {
           sizes="100vw"
         />
         <div className="hero-shade" />
+        <div className="hero-word" aria-hidden="true">
+          VITALE
+        </div>
         <div className="hero-copy">
           <span className="eyebrow">
-            <Leaf size={15} /> Curadoria natural em Ibaiti
+            <Leaf size={15} /> Natural, fitness e bem-estar
           </span>
-          <h1>Escolhas que fazem bem, todos os dias.</h1>
+          <h1>
+            Sua rotina, <em>mais viva.</em>
+          </h1>
           <p>
-            Produtos naturais selecionados, vendidos na medida certa para a sua
-            rotina.
+            Do grão à performance: uma seleção ampla de produtos naturais,
+            creatinas, whey protein, snacks e muito mais.
           </p>
-          <Link className="primary-cta" href="/produtos">
-            Explorar produtos <ArrowRight size={18} />
-          </Link>
+          <div className="hero-actions">
+            <Link className="primary-cta" href="/produtos">
+              Ver todos os produtos <ArrowRight size={18} />
+            </Link>
+            <Link
+              className="secondary-cta"
+              href="/produtos?categoria=suplementos-fitness"
+            >
+              Linha fitness
+            </Link>
+          </div>
+          <div className="hero-pills" aria-label="Categorias em destaque">
+            <span>Creatina</span>
+            <span>Whey</span>
+            <span>Grãos</span>
+            <span>Castanhas</span>
+          </div>
         </div>
         <div className="hero-note">
-          <strong>Do grão à sua mesa.</strong>
+          <Dumbbell />
+          <strong>Da despensa ao treino.</strong>
           <span>
             Escolha o peso, monte o carrinho e finalize pelo WhatsApp.
           </span>
         </div>
       </section>
 
-      <section className="catalog-preview" id="produtos">
+      <div className="brand-ticker" aria-label="Seleção de categorias">
+        <div>
+          <span>Produtos naturais</span>
+          <i>✦</i>
+          <span>Nutrição esportiva</span>
+          <i>✦</i>
+          <span>Venda por peso</span>
+          <i>✦</i>
+          <span>Snacks</span>
+          <i>✦</i>
+          <span>Chás e ervas</span>
+          <i>✦</i>
+          <span>Produtos naturais</span>
+          <i>✦</i>
+          <span>Nutrição esportiva</span>
+          <i>✦</i>
+          <span>Venda por peso</span>
+          <i>✦</i>
+          <span>Snacks</span>
+          <i>✦</i>
+          <span>Chás e ervas</span>
+          <i>✦</i>
+        </div>
+      </div>
+
+      <section className="catalog-preview" id="produtos" data-reveal>
         <div className="section-heading">
           <div>
             <span className="eyebrow green">Seleção Vitale</span>
-            <h2>Os queridinhos da casa</h2>
+            <h2>Escolhas para cada momento</h2>
           </div>
           <Link href="/produtos">
             Ver catálogo completo <ArrowRight size={17} />
@@ -73,20 +119,54 @@ export function HomeStore({ catalog }: { catalog: CatalogPayload }) {
         </div>
       </section>
 
-      <section className="category-section" id="categorias">
+      <section className="fitness-feature" data-reveal>
+        <div className="fitness-visual">
+          <Image
+            src="/vitale-fitness.png"
+            alt="Composição ilustrativa com suplementos, aveia, cacau e amêndoas"
+            fill
+            sizes="(max-width: 900px) 100vw, 55vw"
+          />
+          <span>Nova seleção</span>
+        </div>
+        <div className="fitness-copy">
+          <span className="eyebrow">Performance com identidade natural</span>
+          <h2>
+            Força para o treino. <em>Escolha para a rotina.</em>
+          </h2>
+          <p>
+            Creatina, whey protein, pré-treino, pasta de amendoim e snacks
+            reunidos em uma seção feita para quem busca praticidade.
+          </p>
+          <div className="fitness-tags">
+            <span>Creatinas</span>
+            <span>Whey protein</span>
+            <span>Pré-treinos</span>
+            <span>Snacks</span>
+          </div>
+          <Link
+            className="primary-cta"
+            href="/produtos?categoria=suplementos-fitness"
+          >
+            Explorar linha fitness <ArrowRight size={18} />
+          </Link>
+        </div>
+      </section>
+
+      <section className="category-section" id="categorias" data-reveal>
         <div className="section-heading light">
           <div>
-            <span className="eyebrow">Encontre o seu ritual</span>
-            <h2>Natural do seu jeito</h2>
+            <span className="eyebrow">Um catálogo completo</span>
+            <h2>Explore por categoria</h2>
           </div>
         </div>
         <div className="category-grid">
-          {catalog.categories.slice(0, 4).map((category, index) => (
+          {catalog.categories.map((category, index) => (
             <Link
               href={`/produtos?categoria=${category.slug}`}
               key={category.id}
             >
-              <span>0{index + 1}</span>
+              <span>{String(index + 1).padStart(2, '0')}</span>
               <h3>{category.name}</h3>
               <p>{category.description}</p>
               <ArrowRight size={20} />
@@ -95,30 +175,30 @@ export function HomeStore({ catalog }: { catalog: CatalogPayload }) {
         </div>
       </section>
 
-      <section className="benefits">
-        <div>
+      <section className="benefits" data-reveal>
+        <div data-reveal>
           <Scale />
           <h3>Na medida certa</h3>
           <p>Opções por peso, pacote ou unidade, com preço transparente.</p>
         </div>
-        <div>
+        <div data-reveal>
           <PackageCheck />
           <h3>Pedido do seu jeito</h3>
           <p>Escolha as variações e ajuste quantidades direto no carrinho.</p>
         </div>
-        <div>
+        <div data-reveal>
           <MessageCircle />
           <h3>Atendimento próximo</h3>
           <p>Finalize pelo WhatsApp e combine os detalhes com a loja.</p>
         </div>
-        <div>
+        <div data-reveal>
           <ShieldCheck />
           <h3>Compra tranquila</h3>
           <p>Disponibilidade e valores são confirmados antes da entrega.</p>
         </div>
       </section>
 
-      <section className="about-section" id="sobre">
+      <section className="about-section" id="sobre" data-reveal>
         <div className="about-mark">
           <Image
             src="/vitale-logo.jpg"
@@ -146,7 +226,7 @@ export function HomeStore({ catalog }: { catalog: CatalogPayload }) {
         </div>
       </section>
 
-      <section className="contact-section" id="contato">
+      <section className="contact-section" id="contato" data-reveal>
         <div>
           <span className="eyebrow">Estamos por perto</span>
           <h2>

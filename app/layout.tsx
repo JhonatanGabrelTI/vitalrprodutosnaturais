@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Cormorant_Garamond, Geist } from 'next/font/google';
 import { CartProvider } from '@/lib/cart';
+import { MotionObserver } from '@/components/motion-observer';
 import './globals.css';
 
 const sans = Geist({ variable: '--font-sans', subsets: ['latin'] });
@@ -12,12 +13,19 @@ const display = Cormorant_Garamond({
 
 export const metadata: Metadata = {
   metadataBase: new URL(
-    'https://vitale-produtos-naturais-ibaiti.nutty-degu-4811.chatgpt.site',
+    'https://vitale-produtos-naturais-ibaiti.drchumbadaebalanciam.chatgpt.site',
   ),
   title: 'Vitale Produtos Naturais | Ibaiti - PR',
   description:
-    'Produtos naturais selecionados. Monte seu pedido online e finalize pelo WhatsApp.',
-  keywords: ['produtos naturais', 'Ibaiti', 'castanhas', 'grãos', 'Vitale'],
+    'Produtos naturais, suplementos fitness, creatina, whey e snacks. Monte seu pedido online e finalize pelo WhatsApp.',
+  keywords: [
+    'produtos naturais',
+    'suplementos fitness',
+    'creatina',
+    'whey protein',
+    'Ibaiti',
+    'Vitale',
+  ],
   alternates: { canonical: '/' },
   icons: { icon: '/vitale-logo.jpg', apple: '/vitale-logo.jpg' },
   openGraph: {
@@ -35,7 +43,10 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <body className={`${sans.variable} ${display.variable}`}>
-        <CartProvider>{children}</CartProvider>
+        <CartProvider>
+          <MotionObserver />
+          {children}
+        </CartProvider>
       </body>
     </html>
   );

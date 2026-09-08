@@ -9,6 +9,7 @@ import {
 import { money, type Product } from '@/lib/catalog-data';
 import { useCart } from '@/lib/cart';
 import { useState } from 'react';
+import type { CSSProperties } from 'react';
 
 export function ProductCard({
   product,
@@ -30,15 +31,23 @@ export function ProductCard({
   const [variantIndex, setVariantIndex] = useState(0);
   const variant = variants[variantIndex];
   return (
-    <article className="product-card">
+    <article
+      className={`product-card ${product.categoryId === 'cat-fitness' ? 'fitness-card' : ''}`}
+      data-reveal
+      style={
+        {
+          '--reveal-delay': `${Math.min(index, 5) * 70}ms`,
+        } as CSSProperties
+      }
+    >
       <Link
         className="product-image"
         href={`/produtos/${product.slug}`}
-        style={{ '--crop': `${55 + (index % 3) * 15}%` } as React.CSSProperties}
+        style={{ '--crop': `${55 + (index % 3) * 15}%` } as CSSProperties}
       >
         <Image
-        src={product.imageUrl || '/vitale-hero.webp'}
-          alt={product.name}
+          src={product.imageUrl || '/vitale-hero.webp'}
+          alt={`${product.name} — imagem ilustrativa do catálogo`}
           fill
           sizes="(max-width: 760px) 100vw, 33vw"
         />
