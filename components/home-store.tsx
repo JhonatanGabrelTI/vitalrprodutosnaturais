@@ -4,12 +4,13 @@ import Link from 'next/link';
 import {
   ArrowRight,
   AtSign,
-  Dumbbell,
+  Clock3,
   Leaf,
   MapPin,
   MessageCircle,
   PackageCheck,
   Scale,
+  ShoppingBag,
   ShieldCheck,
   Sparkles,
 } from 'lucide-react';
@@ -17,49 +18,55 @@ import type { CatalogPayload } from '@/lib/catalog-data';
 import { SiteHeader } from './site-header';
 import { CartSheet } from './cart-sheet';
 import { ProductCard } from './product-card';
+import { buildWhatsAppUrl } from '@/lib/whatsapp';
 
 export function HomeStore({ catalog }: { catalog: CatalogPayload }) {
   const featured = catalog.products
     .filter((p) => p.featured || p.promotion)
     .slice(0, 6);
   const products = featured.length ? featured : catalog.products.slice(0, 6);
+  const whatsappUrl = buildWhatsAppUrl(
+    catalog.settings,
+    `${catalog.settings.checkoutMessage}\n\nOlá! Quero conhecer os produtos da Vitale.`,
+  );
   return (
     <main>
       <SiteHeader />
       <CartSheet settings={catalog.settings} />
       <section className="hero" id="inicio">
         <Image
-          src="/vitale-hero.webp"
-          alt="Castanhas, sementes, granola e especiarias em uma composição natural"
+          className="hero-backdrop"
+          src="/vitale-market-hero.png"
+          alt="Seleção de produtos naturais, castanhas, grãos e suplementos"
           fill
           priority
           sizes="100vw"
         />
-        <div className="hero-shade" />
-        <div className="hero-word" aria-hidden="true">
-          VITALE
-        </div>
+        <span className="hero-wash" aria-hidden="true" />
+        <Leaf className="hero-decor decor-one" aria-hidden="true" />
+        <Sparkles className="hero-decor decor-two" aria-hidden="true" />
         <div className="hero-copy">
           <span className="eyebrow">
-            <Leaf size={15} /> Natural, fitness e bem-estar
+            <Leaf size={15} /> Bem para você. Perto de você.
           </span>
           <h1>
-            Sua rotina, <em>mais viva.</em>
+            Cuide da sua saúde de <em>forma natural.</em>
           </h1>
           <p>
-            Do grão à performance: uma seleção ampla de produtos naturais,
-            creatinas, whey protein, snacks e muito mais.
+            Produtos selecionados para uma vida mais saudável e equilibrada.
           </p>
           <div className="hero-actions">
             <Link className="primary-cta" href="/produtos">
-              Ver todos os produtos <ArrowRight size={18} />
+              <ShoppingBag size={18} /> Conhecer produtos
             </Link>
-            <Link
+            <a
               className="secondary-cta"
-              href="/produtos?categoria=suplementos-fitness"
+              href={whatsappUrl}
+              target="_blank"
+              rel="noreferrer"
             >
-              Linha fitness
-            </Link>
+              <MessageCircle size={18} /> Comprar pelo WhatsApp
+            </a>
           </div>
           <div className="hero-pills" aria-label="Categorias em destaque">
             <span>Creatina</span>
@@ -69,38 +76,47 @@ export function HomeStore({ catalog }: { catalog: CatalogPayload }) {
           </div>
         </div>
         <div className="hero-note">
-          <Dumbbell />
-          <strong>Da despensa ao treino.</strong>
-          <span>
-            Escolha o peso, monte o carrinho e finalize pelo WhatsApp.
-          </span>
+          <Leaf />
+          <strong>Natural + fitness</strong>
+          <span>Uma seleção completa para a sua rotina.</span>
         </div>
+        <span className="hero-location">Ibaiti · Paraná</span>
       </section>
 
-      <div className="brand-ticker" aria-label="Seleção de categorias">
-        <div>
-          <span>Produtos naturais</span>
-          <i>✦</i>
-          <span>Nutrição esportiva</span>
-          <i>✦</i>
-          <span>Venda por peso</span>
-          <i>✦</i>
-          <span>Snacks</span>
-          <i>✦</i>
-          <span>Chás e ervas</span>
-          <i>✦</i>
-          <span>Produtos naturais</span>
-          <i>✦</i>
-          <span>Nutrição esportiva</span>
-          <i>✦</i>
-          <span>Venda por peso</span>
-          <i>✦</i>
-          <span>Snacks</span>
-          <i>✦</i>
-          <span>Chás e ervas</span>
-          <i>✦</i>
-        </div>
-      </div>
+      <section className="store-stats" aria-label="Destaques da loja">
+        <article
+          data-reveal
+          style={{ '--reveal-delay': '0ms' } as React.CSSProperties}
+        >
+          <Leaf />
+          <strong>Seleção cuidada</strong>
+          <span>Naturais e suplementos em um só catálogo</span>
+        </article>
+        <article
+          data-reveal
+          style={{ '--reveal-delay': '90ms' } as React.CSSProperties}
+        >
+          <ShieldCheck />
+          <strong>Compra tranquila</strong>
+          <span>Pedido confirmado diretamente com a loja</span>
+        </article>
+        <article
+          data-reveal
+          style={{ '--reveal-delay': '180ms' } as React.CSSProperties}
+        >
+          <PackageCheck />
+          <strong>Medida certa</strong>
+          <span>Unidade, pacote, gramas ou quilos</span>
+        </article>
+        <article
+          data-reveal
+          style={{ '--reveal-delay': '270ms' } as React.CSSProperties}
+        >
+          <MessageCircle />
+          <strong>Atendimento humano</strong>
+          <span>Converse e compre pelo WhatsApp</span>
+        </article>
+      </section>
 
       <section className="catalog-preview" id="produtos" data-reveal>
         <div className="section-heading">
@@ -114,7 +130,12 @@ export function HomeStore({ catalog }: { catalog: CatalogPayload }) {
         </div>
         <div className="product-grid">
           {products.map((product, index) => (
-            <ProductCard key={product.id} product={product} index={index} />
+            <ProductCard
+              key={product.id}
+              product={product}
+              settings={catalog.settings}
+              index={index}
+            />
           ))}
         </div>
       </section>
@@ -175,7 +196,7 @@ export function HomeStore({ catalog }: { catalog: CatalogPayload }) {
         </div>
       </section>
 
-      <section className="benefits" data-reveal>
+      <section className="benefits">
         <div data-reveal>
           <Scale />
           <h3>Na medida certa</h3>
@@ -236,6 +257,13 @@ export function HomeStore({ catalog }: { catalog: CatalogPayload }) {
           </h2>
         </div>
         <div className="contact-cards">
+          <a href={whatsappUrl} target="_blank" rel="noreferrer">
+            <MessageCircle />
+            <span>
+              <small>WhatsApp</small>
+              <strong>Fale com a Vitale</strong>
+            </span>
+          </a>
           <a
             href={`https://instagram.com/${catalog.settings.instagram.replace('@', '')}`}
             target="_blank"
@@ -247,13 +275,20 @@ export function HomeStore({ catalog }: { catalog: CatalogPayload }) {
               <strong>{catalog.settings.instagram}</strong>
             </span>
           </a>
-          <div>
+          <a
+            href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(catalog.settings.address)}`}
+            target="_blank"
+            rel="noreferrer"
+          >
             <MapPin />
             <span>
               <small>Onde estamos</small>
               <strong>{catalog.settings.address}</strong>
             </span>
-          </div>
+          </a>
+        </div>
+        <div className="contact-hours">
+          <Clock3 /> <span>{catalog.settings.hours}</span>
         </div>
       </section>
 

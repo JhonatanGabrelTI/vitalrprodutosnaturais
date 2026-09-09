@@ -1,20 +1,14 @@
 import type { Metadata } from 'next';
-import { Cormorant_Garamond, Geist } from 'next/font/google';
+import { Geist } from 'next/font/google';
 import { CartProvider } from '@/lib/cart';
 import { MotionObserver } from '@/components/motion-observer';
+import { getSiteUrl } from '@/lib/site-url';
 import './globals.css';
 
 const sans = Geist({ variable: '--font-sans', subsets: ['latin'] });
-const display = Cormorant_Garamond({
-  variable: '--font-display',
-  subsets: ['latin'],
-  weight: ['500', '600', '700'],
-});
 
 export const metadata: Metadata = {
-  metadataBase: new URL(
-    'https://vitale-produtos-naturais-ibaiti.drchumbadaebalanciam.chatgpt.site',
-  ),
+  metadataBase: new URL(getSiteUrl()),
   title: 'Vitale Produtos Naturais | Ibaiti - PR',
   description:
     'Produtos naturais, suplementos fitness, creatina, whey e snacks. Monte seu pedido online e finalize pelo WhatsApp.',
@@ -42,7 +36,7 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="pt-BR">
-      <body className={`${sans.variable} ${display.variable}`}>
+      <body className={sans.variable}>
         <CartProvider>
           <MotionObserver />
           {children}

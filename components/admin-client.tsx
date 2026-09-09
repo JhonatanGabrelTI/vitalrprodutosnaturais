@@ -5,6 +5,7 @@ import Link from 'next/link';
 import {
   Boxes,
   ExternalLink,
+  ImagePlus,
   LayoutDashboard,
   LogOut,
   MessageCircle,
@@ -118,6 +119,7 @@ export function AdminClient({
   const [productForm, setProductForm] = useState<ProductForm>(emptyProduct);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [categoryName, setCategoryName] = useState('');
+  const [categoryId, setCategoryId] = useState('');
   const [categorySlug, setCategorySlug] = useState('');
   const [categoryDescription, setCategoryDescription] = useState('');
   const load = async () => {
@@ -240,12 +242,13 @@ export function AdminClient({
     } else notify('Não foi possível excluir.');
     setDeleteId(null);
   };
-  const addCategory = async (event: SyntheticEvent<HTMLFormElement>) => {
+  const saveCategory = async (event: SyntheticEvent<HTMLFormElement>) => {
     event.preventDefault();
     const response = await fetch('/api/admin/categories', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({
+        id: categoryId || undefined,
         name: categoryName,
         description: categoryDescription,
         slug:
@@ -259,12 +262,40 @@ export function AdminClient({
       }),
     });
     if (response.ok) {
+      setCategoryId('');
       setCategoryName('');
       setCategorySlug('');
       setCategoryDescription('');
       await load();
-      notify('Categoria adicionada.');
+      notify(categoryId ? 'Categoria atualizada.' : 'Categoria adicionada.');
     }
+  };
+  const editCategory = (category: Category) => {
+    setCategoryId(category.id);
+    setCategoryName(category.name);
+    setCategorySlug(category.slug);
+    setCategoryDescription(category.description);
+  };
+  const deleteCategory = async (category: Category) => {
+    if (
+      !window.confirm(
+        `Excluir a categoria “${category.name}”? Os produtos não serão excluídos, mas ficarão sem categoria até serem editados.`,
+      )
+    )
+      return;
+    const response = await fetch(
+      `/api/admin/categories?id=${encodeURIComponent(category.id)}`,
+      { method: 'DELETE' },
+    );
+    if (!response.ok) return notify('Não foi possível excluir a categoria.');
+    if (categoryId === category.id) {
+      setCategoryId('');
+      setCategoryName('');
+      setCategorySlug('');
+      setCategoryDescription('');
+    }
+    await load();
+    notify('Categoria excluída.');
   };
   const updateOrder = async (id: string, status: string) => {
     await fetch(`/api/admin/orders/${id}`, {
@@ -455,6 +486,10 @@ export function AdminClient({
                         alt=""
                         width={48}
                         height={48}
+                        unoptimized={
+                          product.imageUrl.startsWith('data:') ||
+                          product.imageUrl.startsWith('http')
+                        }
                       />
                       <span>
                         <strong>{product.name}</strong>
@@ -534,15 +569,31 @@ export function AdminClient({
                         }{' '}
                         produtos
                       </span>
+                      <span className="category-actions">
+                        <button
+                          onClick={() => editCategory(category)}
+                          aria-label={`Editar categoria ${category.name}`}
+                        >
+                          <Pencil />
+                        </button>
+                        <button
+                          onClick={() => deleteCategory(category)}
+                          aria-label={`Excluir categoria ${category.name}`}
+                        >
+                          <Trash2 />
+                        </button>
+                      </span>
                     </article>
                   ))}
                 </div>
               </div>
-              <form className="admin-card simple-form" onSubmit={addCategory}>
+              <form className="admin-card simple-form" onSubmit={saveCategory}>
                 <div className="card-title">
                   <div>
-                    <small>Nova</small>
-                    <h2>Adicionar categoria</h2>
+                    <small>{categoryId ? 'Edição' : 'Nova'}</small>
+                    <h2>
+                      {categoryId ? 'Editar categoria' : 'Adicionar categoria'}
+                    </h2>
                   </div>
                 </div>
                 <label>
@@ -569,7 +620,23 @@ export function AdminClient({
                     placeholder="Ex.: suplementos e acessórios para o treino"
                   />
                 </label>
-                <button>Adicionar categoria</button>
+                <button>
+                  {categoryId ? 'Salvar categoria' : 'Adicionar categoria'}
+                </button>
+                {categoryId && (
+                  <button
+                    type="button"
+                    className="category-cancel"
+                    onClick={() => {
+                      setCategoryId('');
+                      setCategoryName('');
+                      setCategorySlug('');
+                      setCategoryDescription('');
+                    }}
+                  >
+                    Cancelar edição
+                  </button>
+                )}
               </form>
             </div>
           </TabsContent>
@@ -726,6 +793,7 @@ function ProductFormView({
   categories: Category[];
   onSubmit: (event: SyntheticEvent<HTMLFormElement>) => void;
 }) {
+  const [imageError, setImageError] = useState('');
   const field = (key: keyof ProductForm) => ({
     value: String(form[key]),
     onChange: (
@@ -839,10 +907,54 @@ function ProductFormView({
           SKU
           <input {...field('sku')} />
         </label>
-        <label className="full">
-          Imagem (URL ou caminho)
-          <input {...field('imageUrl')} />
-        </label>
+        <div className="image-field full">
+          <div className="image-preview">
+            <Image
+              src={form.imageUrl || '/vitale-hero.webp'}
+              alt="Prévia da foto do produto"
+              width={160}
+              height={130}
+              unoptimized={
+                form.imageUrl.startsWith('data:') ||
+                form.imageUrl.startsWith('http')
+              }
+            />
+          </div>
+          <div>
+            <strong>Foto do produto</strong>
+            <label className="image-upload">
+              <ImagePlus /> Escolher imagem
+              <input
+                type="file"
+                accept="image/png,image/jpeg,image/webp"
+                onChange={(event) => {
+                  const file = event.target.files?.[0];
+                  if (!file) return;
+                  if (file.size > 1_500_000) {
+                    setImageError('A imagem deve ter no máximo 1,5 MB.');
+                    return;
+                  }
+                  const reader = new FileReader();
+                  reader.onload = () => {
+                    if (typeof reader.result !== 'string') return;
+                    setForm({ ...form, imageUrl: reader.result });
+                    setImageError('');
+                  };
+                  reader.readAsDataURL(file);
+                }}
+              />
+            </label>
+            <label className="image-url">
+              Ou cole uma URL/caminho
+              <input {...field('imageUrl')} />
+            </label>
+            {imageError && <small className="field-error">{imageError}</small>}
+            <small className="field-help">
+              JPG, PNG ou WebP. Para melhor desempenho, use imagens quadradas e
+              otimizadas.
+            </small>
+          </div>
+        </div>
         <label className="full">
           Descrição curta
           <input {...field('shortDescription')} />

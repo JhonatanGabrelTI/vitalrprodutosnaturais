@@ -137,7 +137,12 @@ export function CatalogClient({
           {filtered.length ? (
             <div className="product-grid catalog-grid">
               {filtered.map((product, index) => (
-                <ProductCard key={product.id} product={product} index={index} />
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  settings={catalog.settings}
+                  index={index}
+                />
               ))}
             </div>
           ) : (

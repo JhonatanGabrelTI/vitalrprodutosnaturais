@@ -44,6 +44,10 @@ export function CartSheet({ settings }: { settings: StoreSettings }) {
                   alt=""
                   width={78}
                   height={86}
+                  unoptimized={
+                    item.product.imageUrl.startsWith('data:') ||
+                    item.product.imageUrl.startsWith('http')
+                  }
                 />
                 <div>
                   <strong>{item.product.name}</strong>

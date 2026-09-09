@@ -70,6 +70,10 @@ export function ProductDetailClient({
               alt={product.name}
               fill
               priority
+              unoptimized={
+                product.imageUrl.startsWith('data:') ||
+                product.imageUrl.startsWith('http')
+              }
               sizes="(max-width: 800px) 100vw, 50vw"
             />
             {product.promotion && <span>Oferta</span>}

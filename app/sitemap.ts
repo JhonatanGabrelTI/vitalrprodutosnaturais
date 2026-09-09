@@ -1,10 +1,10 @@
 import type { MetadataRoute } from 'next';
 import { readCatalog } from '@/lib/catalog-server';
+import { getSiteUrl } from '@/lib/site-url';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const catalog = await readCatalog();
-  const base =
-    'https://vitale-produtos-naturais-ibaiti.drchumbadaebalanciam.chatgpt.site';
+  const base = getSiteUrl();
   return [
     { url: base, changeFrequency: 'weekly', priority: 1 },
     { url: `${base}/produtos`, changeFrequency: 'daily', priority: 0.9 },

@@ -5,6 +5,9 @@ import { useEffect } from 'react';
 export function MotionObserver() {
   useEffect(() => {
     const observed = new WeakSet<Element>();
+    const reducedMotion = window.matchMedia(
+      '(prefers-reduced-motion: reduce)',
+    ).matches;
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -22,6 +25,16 @@ export function MotionObserver() {
         .forEach((element) => {
           if (observed.has(element)) return;
           observed.add(element);
+          if (reducedMotion) {
+            element.classList.add('is-visible');
+            return;
+          }
+          element.classList.add('reveal-ready');
+          const bounds = element.getBoundingClientRect();
+          if (bounds.top < window.innerHeight * 0.94 && bounds.bottom > 0) {
+            element.classList.add('is-visible');
+            return;
+          }
           observer.observe(element);
         });
     };

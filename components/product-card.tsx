@@ -1,21 +1,24 @@
 'use client';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Plus } from 'lucide-react';
+import { MessageCircle, Plus } from 'lucide-react';
 import {
   NativeSelect,
   NativeSelectOption,
 } from '@/components/ui/native-select';
-import { money, type Product } from '@/lib/catalog-data';
+import { money, type Product, type StoreSettings } from '@/lib/catalog-data';
 import { useCart } from '@/lib/cart';
+import { buildWhatsAppUrl, productWhatsAppMessage } from '@/lib/whatsapp';
 import { useState } from 'react';
 import type { CSSProperties } from 'react';
 
 export function ProductCard({
   product,
+  settings,
   index = 0,
 }: {
   product: Product;
+  settings: StoreSettings;
   index?: number;
 }) {
   const cart = useCart();
@@ -30,6 +33,15 @@ export function ProductCard({
       ];
   const [variantIndex, setVariantIndex] = useState(0);
   const variant = variants[variantIndex];
+  const whatsappUrl = buildWhatsAppUrl(
+    settings,
+    productWhatsAppMessage(
+      settings,
+      product.name,
+      variant.label,
+      money(variant.priceCents),
+    ),
+  );
   return (
     <article
       className={`product-card ${product.categoryId === 'cat-fitness' ? 'fitness-card' : ''}`}
@@ -49,6 +61,10 @@ export function ProductCard({
           src={product.imageUrl || '/vitale-hero.webp'}
           alt={`${product.name} — imagem ilustrativa do catálogo`}
           fill
+          unoptimized={
+            product.imageUrl.startsWith('data:') ||
+            product.imageUrl.startsWith('http')
+          }
           sizes="(max-width: 760px) 100vw, 33vw"
         />
         {(product.promotion || product.featured) && (
@@ -86,6 +102,15 @@ export function ProductCard({
             <Plus size={20} />
           </button>
         </div>
+        <a
+          className="product-whatsapp"
+          href={whatsappUrl}
+          target="_blank"
+          rel="noreferrer"
+          aria-label={`Comprar ${product.name} pelo WhatsApp`}
+        >
+          <MessageCircle size={17} /> Comprar pelo WhatsApp
+        </a>
       </div>
     </article>
   );

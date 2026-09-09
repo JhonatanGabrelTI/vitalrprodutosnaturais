@@ -1,12 +1,18 @@
 import Image from 'next/image';
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
 import { ArrowLeft, LockKeyhole } from 'lucide-react';
-import { chatGPTSignInPath, getChatGPTUser } from '@/app/chatgpt-auth';
+import { AdminLoginForm } from '@/components/admin-login-form';
+import {
+  DEMO_ADMIN_EMAIL,
+  DEMO_ADMIN_PASSWORD,
+  getAdminEmail,
+} from '@/lib/admin-auth';
 
 export const dynamic = 'force-dynamic';
 
 export default async function AdminLogin() {
-  const user = await getChatGPTUser();
+  if (await getAdminEmail()) redirect('/admin');
   return (
     <main className="login-page">
       <Link href="/">
@@ -23,27 +29,20 @@ export default async function AdminLogin() {
         <span>
           <LockKeyhole /> Área protegida
         </span>
-        <h1>Painel da loja</h1>
+        <h1>Painel do catálogo</h1>
         <p>
-          Gerencie o catálogo, as categorias, os pedidos e os dados de
-          atendimento da Vitale.
+          Cadastre produtos, fotos, categorias, preços, estoque e unidades de
+          venda da Vitale.
         </p>
-        {user ? (
-          <Link className="login-button" href="/admin">
-            Entrar no painel
-          </Link>
-        ) : (
-          <a
-            className="login-button"
-            href={chatGPTSignInPath('/admin')}
-            target="_top"
-          >
-            Entrar com ChatGPT
-          </a>
-        )}
+        <AdminLoginForm demoEmail={DEMO_ADMIN_EMAIL} />
+        <div className="demo-credentials">
+          <strong>Acesso fictício para demonstração</strong>
+          <span>E-mail: {DEMO_ADMIN_EMAIL}</span>
+          <span>Senha: {DEMO_ADMIN_PASSWORD}</span>
+        </div>
         <small>
-          O acesso exige autenticação e respeita as permissões definidas para o
-          site.
+          Antes do uso real, altere as credenciais nas variáveis protegidas do
+          ambiente de hospedagem.
         </small>
       </section>
     </main>
