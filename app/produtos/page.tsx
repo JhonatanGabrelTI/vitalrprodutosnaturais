@@ -6,13 +6,14 @@ export const dynamic = 'force-dynamic';
 export default async function ProductsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ categoria?: string }>;
+  searchParams: Promise<{ busca?: string; categoria?: string }>;
 }) {
   const [catalog, params] = await Promise.all([readCatalog(), searchParams]);
   return (
     <CatalogClient
       catalog={catalog}
       initialCategory={params.categoria || 'todos'}
+      initialSearch={params.busca || ''}
     />
   );
 }

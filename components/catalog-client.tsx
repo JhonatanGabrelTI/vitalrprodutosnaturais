@@ -15,11 +15,13 @@ import { CartSheet } from './cart-sheet';
 export function CatalogClient({
   catalog,
   initialCategory = 'todos',
+  initialSearch = '',
 }: {
   catalog: CatalogPayload;
   initialCategory?: string;
+  initialSearch?: string;
 }) {
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState(initialSearch);
   const [category, setCategory] = useState(initialCategory);
   const [order, setOrder] = useState('featured');
   const filtered = useMemo(() => {

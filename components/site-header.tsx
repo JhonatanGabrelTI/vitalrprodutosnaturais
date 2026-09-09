@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import { SiteLink as Link } from './site-link';
-import { Menu, Search, ShoppingBag, X } from 'lucide-react';
+import { Menu, Search, ShoppingBag, UserRound, X } from 'lucide-react';
 import { useCart } from '@/lib/cart';
 import { useState } from 'react';
 
@@ -12,8 +12,7 @@ export function SiteHeader() {
   return (
     <>
       <div className="demo-bar">
-        Catálogo demonstrativo — personalize produtos, preços e contato no
-        painel
+        Produtos naturais e linha fitness • Atendimento em Ibaiti, Paraná
       </div>
       <header className="site-header">
         <Link
@@ -28,6 +27,10 @@ export function SiteHeader() {
             height={48}
             priority
           />
+          <span className="brand-copy">
+            <strong>Vitale</strong>
+            <small>Produtos Naturais</small>
+          </span>
         </Link>
         <nav aria-label="Navegação principal">
           <Link href="/">Início</Link>
@@ -37,8 +40,21 @@ export function SiteHeader() {
           <Link href="/#contato">Contato</Link>
         </nav>
         <div className="header-actions">
-          <Link className="icon-button" href="/produtos" aria-label="Pesquisar">
+          <form className="header-search" action="/produtos">
             <Search size={19} />
+            <input
+              type="search"
+              name="busca"
+              aria-label="Buscar no catálogo"
+              placeholder="Buscar produtos..."
+            />
+          </form>
+          <Link
+            className="account-button"
+            href="/admin/login"
+            aria-label="Entrar no painel da loja"
+          >
+            <UserRound size={19} />
           </Link>
           <button
             className="bag-button"
@@ -46,7 +62,10 @@ export function SiteHeader() {
             aria-label="Abrir carrinho"
           >
             <ShoppingBag size={19} />
-            <span key={cart.count}>{cart.count}</span>
+            <span className="cart-label">Carrinho</span>
+            <span className="cart-count" key={cart.count}>
+              {cart.count}
+            </span>
           </button>
           <button
             className="mobile-menu"

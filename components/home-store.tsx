@@ -31,92 +31,90 @@ export function HomeStore({ catalog }: { catalog: CatalogPayload }) {
   );
   return (
     <main>
-      <SiteHeader />
       <CartSheet settings={catalog.settings} />
-      <section className="hero" id="inicio">
-        <Image
-          className="hero-backdrop"
-          src="/vitale-market-hero.png"
-          alt="Seleção de produtos naturais, castanhas, grãos e suplementos"
-          fill
-          priority
-          sizes="100vw"
-        />
-        <span className="hero-wash" aria-hidden="true" />
-        <Leaf className="hero-decor decor-one" aria-hidden="true" />
-        <Sparkles className="hero-decor decor-two" aria-hidden="true" />
-        <div className="hero-copy">
-          <span className="eyebrow">
-            <Leaf size={15} /> Bem para você. Perto de você.
-          </span>
-          <h1>
-            Cuide da sua saúde de <em>forma natural.</em>
-          </h1>
-          <p>
-            Produtos selecionados para uma vida mais saudável e equilibrada.
-          </p>
-          <div className="hero-actions">
-            <Link className="primary-cta" href="/produtos">
-              <ShoppingBag size={18} /> Conhecer produtos
-            </Link>
-            <a
-              className="secondary-cta"
-              href={whatsappUrl}
-              target="_blank"
-              rel="noreferrer"
-            >
-              <MessageCircle size={18} /> Comprar pelo WhatsApp
-            </a>
+      <div className="market-frame">
+        <SiteHeader />
+        <section className="hero" id="inicio">
+          <Image
+            className="hero-backdrop"
+            src="/vitale-market-hero.png"
+            alt="Seleção de produtos naturais, castanhas, grãos e suplementos"
+            fill
+            priority
+            sizes="100vw"
+          />
+          <span className="hero-wash" aria-hidden="true" />
+          <Leaf className="hero-decor decor-one" aria-hidden="true" />
+          <Sparkles className="hero-decor decor-two" aria-hidden="true" />
+          <div className="hero-copy">
+            <span className="eyebrow">
+              <Leaf size={15} /> Bem para você. Perto de você.
+            </span>
+            <h1>
+              Cuide da sua saúde de <em>forma natural.</em>
+            </h1>
+            <p>
+              Produtos selecionados para uma vida mais saudável e equilibrada.
+            </p>
+            <div className="hero-actions">
+              <Link className="primary-cta" href="/produtos">
+                <ShoppingBag size={18} /> Conhecer produtos
+              </Link>
+              <a
+                className="secondary-cta"
+                href={whatsappUrl}
+                target="_blank"
+                rel="noreferrer"
+              >
+                <MessageCircle size={18} /> Comprar pelo WhatsApp
+              </a>
+            </div>
+            <div className="hero-pills" aria-label="Categorias em destaque">
+              <span>Creatina</span>
+              <span>Whey</span>
+              <span>Grãos</span>
+              <span>Castanhas</span>
+            </div>
           </div>
-          <div className="hero-pills" aria-label="Categorias em destaque">
-            <span>Creatina</span>
-            <span>Whey</span>
-            <span>Grãos</span>
-            <span>Castanhas</span>
+          <div className="hero-note">
+            <Leaf />
+            <strong>Natural + fitness</strong>
+            <span>Uma seleção completa para a sua rotina.</span>
           </div>
-        </div>
-        <div className="hero-note">
-          <Leaf />
-          <strong>Natural + fitness</strong>
-          <span>Uma seleção completa para a sua rotina.</span>
-        </div>
-        <span className="hero-location">Ibaiti · Paraná</span>
-      </section>
+          <span className="hero-location">Ibaiti · Paraná</span>
 
-      <section className="store-stats" aria-label="Destaques da loja">
-        <article
-          data-reveal
-          style={{ '--reveal-delay': '0ms' } as React.CSSProperties}
-        >
-          <Leaf />
-          <strong>Seleção cuidada</strong>
-          <span>Naturais e suplementos em um só catálogo</span>
-        </article>
-        <article
-          data-reveal
-          style={{ '--reveal-delay': '90ms' } as React.CSSProperties}
-        >
-          <ShieldCheck />
-          <strong>Compra tranquila</strong>
-          <span>Pedido confirmado diretamente com a loja</span>
-        </article>
-        <article
-          data-reveal
-          style={{ '--reveal-delay': '180ms' } as React.CSSProperties}
-        >
-          <PackageCheck />
-          <strong>Medida certa</strong>
-          <span>Unidade, pacote, gramas ou quilos</span>
-        </article>
-        <article
-          data-reveal
-          style={{ '--reveal-delay': '270ms' } as React.CSSProperties}
-        >
-          <MessageCircle />
-          <strong>Atendimento humano</strong>
-          <span>Converse e compre pelo WhatsApp</span>
-        </article>
-      </section>
+          <div className="hero-benefits" aria-label="Destaques da loja">
+            <article>
+              <Leaf />
+              <span>
+                <strong>Seleção cuidada</strong>
+                <small>Naturais e suplementos</small>
+              </span>
+            </article>
+            <article>
+              <ShieldCheck />
+              <span>
+                <strong>Compra tranquila</strong>
+                <small>Confirmação com a loja</small>
+              </span>
+            </article>
+            <article>
+              <PackageCheck />
+              <span>
+                <strong>Medida certa</strong>
+                <small>Unidade, gramas ou quilos</small>
+              </span>
+            </article>
+            <article>
+              <MessageCircle />
+              <span>
+                <strong>Atendimento humano</strong>
+                <small>Direto pelo WhatsApp</small>
+              </span>
+            </article>
+          </div>
+        </section>
+      </div>
 
       <section className="catalog-preview" id="produtos" data-reveal>
         <div className="section-heading">

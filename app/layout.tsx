@@ -4,6 +4,7 @@ import { CartProvider } from '@/lib/cart';
 import { MotionObserver } from '@/components/motion-observer';
 import { getSiteUrl } from '@/lib/site-url';
 import './globals.css';
+import './storefront-refresh.css';
 
 const sans = Geist({ variable: '--font-sans', subsets: ['latin'] });
 
