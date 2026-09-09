@@ -1,7 +1,7 @@
 'use client';
 import { type SyntheticEvent, useEffect, useState } from 'react';
 import Image from 'next/image';
-import Link from 'next/link';
+import { SiteLink as Link } from './site-link';
 import {
   Boxes,
   ExternalLink,

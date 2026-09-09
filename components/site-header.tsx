@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import Link from 'next/link';
+import { SiteLink as Link } from './site-link';
 import { Menu, Search, ShoppingBag, X } from 'lucide-react';
 import { useCart } from '@/lib/cart';
 import { useState } from 'react';

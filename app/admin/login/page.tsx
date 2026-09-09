@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import Link from 'next/link';
+import { SiteLink as Link } from '@/components/site-link';
 import { redirect } from 'next/navigation';
 import { ArrowLeft, LockKeyhole } from 'lucide-react';
 import { AdminLoginForm } from '@/components/admin-login-form';

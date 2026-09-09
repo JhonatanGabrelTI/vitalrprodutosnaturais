@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import Link from 'next/link';
+import { SiteLink as Link } from './site-link';
 import { ArrowLeft, Search, SlidersHorizontal } from 'lucide-react';
 import {
   NativeSelect,

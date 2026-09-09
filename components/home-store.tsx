@@ -1,6 +1,6 @@
 'use client';
 import Image from 'next/image';
-import Link from 'next/link';
+import { SiteLink as Link } from './site-link';
 import {
   ArrowRight,
   AtSign,
