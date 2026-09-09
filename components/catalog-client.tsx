@@ -7,7 +7,7 @@ import {
   NativeSelect,
   NativeSelectOption,
 } from '@/components/ui/native-select';
-import type { CatalogPayload } from '@/lib/catalog-data';
+import { productStartingPrice, type CatalogPayload } from '@/lib/catalog-data';
 import { ProductCard } from './product-card';
 import { SiteHeader } from './site-header';
 import { CartSheet } from './cart-sheet';
@@ -34,17 +34,15 @@ export function CatalogClient({
             catalog.categories.find((item) => item.id === product.categoryId)
               ?.slug === category) &&
           (!terms ||
-            `${product.name} ${product.categoryName} ${product.shortDescription}`
+            `${product.name} ${product.categoryName} ${product.shortDescription} ${product.variants.map((variant) => variant.label).join(' ')}`
               .toLocaleLowerCase('pt-BR')
               .includes(terms)),
       )
       .sort((a, b) =>
         order === 'price-asc'
-          ? (a.salePriceCents ?? a.priceCents) -
-            (b.salePriceCents ?? b.priceCents)
+          ? productStartingPrice(a) - productStartingPrice(b)
           : order === 'price-desc'
-            ? (b.salePriceCents ?? b.priceCents) -
-              (a.salePriceCents ?? a.priceCents)
+            ? productStartingPrice(b) - productStartingPrice(a)
             : order === 'name'
               ? a.name.localeCompare(b.name, 'pt-BR')
               : Number(b.featured) - Number(a.featured),
@@ -62,7 +60,8 @@ export function CatalogClient({
         <h1>Do natural à performance, tudo em um só lugar.</h1>
         <p>
           Explore suplementos, proteínas, snacks, castanhas, grãos, chás e
-          ingredientes. Escolha o tamanho antes de adicionar ao carrinho.
+          ingredientes. Escolha o sabor, tamanho ou embalagem antes de adicionar
+          ao carrinho.
         </p>
       </section>
       <section className="catalog-layout">

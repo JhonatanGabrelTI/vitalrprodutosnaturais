@@ -10,7 +10,12 @@ import {
   SheetHeader,
   SheetTitle,
 } from '@/components/ui/sheet';
-import { money, type StoreSettings } from '@/lib/catalog-data';
+import {
+  money,
+  variantImage,
+  variantPrice,
+  type StoreSettings,
+} from '@/lib/catalog-data';
 import { useCart } from '@/lib/cart';
 
 export function CartSheet({ settings }: { settings: StoreSettings }) {
@@ -31,7 +36,7 @@ export function CartSheet({ settings }: { settings: StoreSettings }) {
             <div className="empty-cart">
               <ShoppingBag size={34} />
               <h3>Seu carrinho está vazio</h3>
-              <p>Escolha um produto e monte seu pedido na medida certa.</p>
+              <p>Escolha um produto e selecione o sabor, tamanho ou opção.</p>
               <button onClick={() => cart.setOpen(false)}>
                 Continuar comprando
               </button>
@@ -40,19 +45,21 @@ export function CartSheet({ settings }: { settings: StoreSettings }) {
             cart.items.map((item) => (
               <article className="cart-item" key={item.key}>
                 <Image
-                  src={item.product.imageUrl}
+                  src={variantImage(item.product, item.variant)}
                   alt=""
                   width={78}
                   height={86}
                   unoptimized={
-                    item.product.imageUrl.startsWith('data:') ||
-                    item.product.imageUrl.startsWith('http')
+                    variantImage(item.product, item.variant).startsWith(
+                      'data:',
+                    ) ||
+                    variantImage(item.product, item.variant).startsWith('http')
                   }
                 />
                 <div>
                   <strong>{item.product.name}</strong>
                   <span>{item.variant.label}</span>
-                  <b>{money(item.variant.priceCents * item.quantity)}</b>
+                  <b>{money(variantPrice(item.variant) * item.quantity)}</b>
                   <div className="quantity-control">
                     <button
                       onClick={() =>

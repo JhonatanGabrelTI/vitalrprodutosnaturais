@@ -101,8 +101,8 @@ export function HomeStore({ catalog }: { catalog: CatalogPayload }) {
             <article>
               <PackageCheck />
               <span>
-                <strong>Medida certa</strong>
-                <small>Unidade, gramas ou quilos</small>
+                <strong>Opção certa</strong>
+                <small>Sabores, tamanhos e pesos</small>
               </span>
             </article>
             <article>
@@ -197,8 +197,8 @@ export function HomeStore({ catalog }: { catalog: CatalogPayload }) {
       <section className="benefits">
         <div data-reveal>
           <Scale />
-          <h3>Na medida certa</h3>
-          <p>Opções por peso, pacote ou unidade, com preço transparente.</p>
+          <h3>Na opção certa</h3>
+          <p>Sabores, pesos e embalagens com preço transparente.</p>
         </div>
         <div data-reveal>
           <PackageCheck />

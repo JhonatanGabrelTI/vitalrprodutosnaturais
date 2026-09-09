@@ -6,7 +6,15 @@ import {
   NativeSelect,
   NativeSelectOption,
 } from '@/components/ui/native-select';
-import { money, type Product, type StoreSettings } from '@/lib/catalog-data';
+import {
+  money,
+  productVariants,
+  variantImage,
+  variantPrice,
+  variantStock,
+  type Product,
+  type StoreSettings,
+} from '@/lib/catalog-data';
 import { useCart } from '@/lib/cart';
 import { buildWhatsAppUrl, productWhatsAppMessage } from '@/lib/whatsapp';
 import { useState } from 'react';
@@ -22,24 +30,19 @@ export function ProductCard({
   index?: number;
 }) {
   const cart = useCart();
-  const variants = product.variants.length
-    ? product.variants
-    : [
-        {
-          label: product.unitLabel,
-          quantity: 1,
-          priceCents: product.salePriceCents ?? product.priceCents,
-        },
-      ];
+  const variants = productVariants(product);
   const [variantIndex, setVariantIndex] = useState(0);
   const variant = variants[variantIndex];
+  const currentPrice = variantPrice(variant);
+  const currentImage = variantImage(product, variant);
+  const currentStock = variantStock(product, variant);
   const whatsappUrl = buildWhatsAppUrl(
     settings,
     productWhatsAppMessage(
       settings,
       product.name,
       variant.label,
-      money(variant.priceCents),
+      money(currentPrice),
     ),
   );
   return (
@@ -58,19 +61,23 @@ export function ProductCard({
         style={{ '--crop': `${55 + (index % 3) * 15}%` } as CSSProperties}
       >
         <Image
-          src={product.imageUrl || '/vitale-hero.webp'}
-          alt={`${product.name} — imagem ilustrativa do catálogo`}
+          key={currentImage}
+          src={currentImage}
+          alt={`${product.name} — ${variant.label}`}
           fill
           unoptimized={
-            product.imageUrl.startsWith('data:') ||
-            product.imageUrl.startsWith('http')
+            currentImage.startsWith('data:') || currentImage.startsWith('http')
           }
           sizes="(max-width: 760px) 100vw, 33vw"
         />
-        {(product.promotion || product.featured) && (
-          <span>{product.promotion ? 'Oferta' : 'Destaque'}</span>
+        {(variant.salePriceCents || product.promotion || product.featured) && (
+          <span>
+            {variant.salePriceCents || product.promotion
+              ? 'Oferta'
+              : 'Destaque'}
+          </span>
         )}
-        {product.stockQty <= 0 && <em>Indisponível</em>}
+        {currentStock <= 0 && <em>Indisponível</em>}
       </Link>
       <div className="product-info">
         <small>{product.categoryName}</small>
@@ -79,23 +86,26 @@ export function ProductCard({
         </Link>
         <p>{product.shortDescription}</p>
         <NativeSelect
-          aria-label={`Escolher medida de ${product.name}`}
+          aria-label={`Escolher variação de ${product.name}`}
           value={variantIndex}
           onChange={(event) => setVariantIndex(Number(event.target.value))}
         >
           {variants.map((item, idx) => (
             <NativeSelectOption key={item.label} value={idx}>
-              {item.label}
+              {item.label} — {money(variantPrice(item))}
             </NativeSelectOption>
           ))}
         </NativeSelect>
         <div className="product-buy">
           <div>
-            {product.salePriceCents && <del>{money(product.priceCents)}</del>}
-            <strong>{money(variant.priceCents)}</strong>
+            {variant.salePriceCents != null &&
+              variant.salePriceCents < variant.priceCents && (
+                <del>{money(variant.priceCents)}</del>
+              )}
+            <strong>{money(currentPrice)}</strong>
           </div>
           <button
-            disabled={product.stockQty <= 0}
+            disabled={currentStock <= 0}
             onClick={() => cart.addItem(product, variant)}
             aria-label={`Adicionar ${product.name} ao carrinho`}
           >

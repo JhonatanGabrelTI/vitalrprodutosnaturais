@@ -2,6 +2,9 @@ export type SaleVariant = {
   label: string;
   quantity: number;
   priceCents: number;
+  salePriceCents?: number | null;
+  stockQty?: number | null;
+  imageUrl?: string;
 };
 
 export type Product = {
@@ -29,6 +32,40 @@ export type Product = {
   active: boolean;
   variants: SaleVariant[];
 };
+
+export const variantPrice = (variant: SaleVariant) =>
+  variant.salePriceCents ?? variant.priceCents;
+
+export const productVariants = (product: Product): SaleVariant[] =>
+  product.variants.length
+    ? product.variants
+    : [
+        {
+          label: product.unitLabel,
+          quantity: 1,
+          priceCents: product.priceCents,
+          salePriceCents: product.salePriceCents,
+          stockQty: product.stockQty,
+          imageUrl: product.imageUrl,
+        },
+      ];
+
+export const variantImage = (product: Product, variant: SaleVariant) =>
+  variant.imageUrl?.trim() || product.imageUrl || '/vitale-hero.webp';
+
+export const variantStock = (product: Product, variant: SaleVariant) =>
+  variant.stockQty == null ? product.stockQty : Math.max(0, variant.stockQty);
+
+export const productStock = (product: Product) =>
+  product.variants.some((variant) => variant.stockQty != null)
+    ? product.variants.reduce(
+        (total, variant) => total + Math.max(0, variant.stockQty ?? 0),
+        0,
+      )
+    : product.stockQty;
+
+export const productStartingPrice = (product: Product) =>
+  Math.min(...productVariants(product).map(variantPrice));
 
 export type Category = {
   id: string;

@@ -8,7 +8,14 @@ import {
   useMemo,
   useState,
 } from 'react';
-import type { Product, SaleVariant, StoreSettings } from './catalog-data';
+import {
+  productVariants,
+  variantPrice,
+  variantStock,
+  type Product,
+  type SaleVariant,
+  type StoreSettings,
+} from './catalog-data';
 
 export type CartItem = {
   key: string;
@@ -70,9 +77,16 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const addItem = useCallback(
     (product: Product, variant: SaleVariant, quantity = 1) => {
+      const available = variantStock(product, variant);
+      if (available < product.minQty) {
+        setNotice(`${variant.label} está indisponível no momento.`);
+        setTimeout(() => setNotice(''), 2600);
+        return;
+      }
+      const maxAllowed = Math.min(product.maxQty, available);
       const safeQuantity = Math.max(
         product.minQty,
-        Math.min(product.maxQty, quantity),
+        Math.min(maxAllowed, quantity),
       );
       const key = `${product.id}:${variant.label}`;
       setItems((current) => {
@@ -83,7 +97,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
                 ? {
                     ...item,
                     quantity: Math.min(
-                      product.maxQty,
+                      maxAllowed,
                       item.quantity + safeQuantity,
                     ),
                   }
@@ -131,14 +145,12 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
               );
               if (!product)
                 throw new Error('Produto não encontrado ou indisponível.');
-              const variant = product.variants.find(
-                (item) => item.label === value.variantLabel,
-              ) ||
-                product.variants[0] || {
-                  label: product.unitLabel,
-                  quantity: 1,
-                  priceCents: product.salePriceCents ?? product.priceCents,
-                };
+              const variants = productVariants(product);
+              const variant =
+                variants.find((item) => item.label === value.variantLabel) ||
+                variants[0];
+              if (variantStock(product, variant) < product.minQty)
+                throw new Error('Esta variação está sem estoque.');
               addItem(product, variant, value.quantity || 1);
               return {
                 added: true,
@@ -170,7 +182,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
                   ...item,
                   quantity: Math.max(
                     1,
-                    Math.min(item.product.maxQty, quantity),
+                    Math.min(
+                      item.product.maxQty,
+                      variantStock(item.product, item.variant),
+                      quantity,
+                    ),
                   ),
                 }
               : item,
@@ -181,13 +197,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       clear: () => setItems([]),
       count: items.reduce((sum, item) => sum + item.quantity, 0),
       totalCents: items.reduce(
-        (sum, item) => sum + item.variant.priceCents * item.quantity,
+        (sum, item) => sum + variantPrice(item.variant) * item.quantity,
         0,
       ),
       async checkout(settings) {
         if (!items.length) return;
         const total = items.reduce(
-          (sum, item) => sum + item.variant.priceCents * item.quantity,
+          (sum, item) => sum + variantPrice(item.variant) * item.quantity,
           0,
         );
         const order = {
@@ -196,7 +212,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
             name: item.product.name,
             variantLabel: item.variant.label,
             quantity: item.quantity,
-            unitPriceCents: item.variant.priceCents,
+            unitPriceCents: variantPrice(item.variant),
           })),
           totalCents: total,
         };
@@ -212,7 +228,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         } catch {}
         const lines = items.map(
           (item) =>
-            `• ${item.quantity}x ${item.product.name} — ${item.variant.label} — ${((item.variant.priceCents * item.quantity) / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`,
+            `• ${item.quantity}x ${item.product.name} — ${item.variant.label} — ${((variantPrice(item.variant) * item.quantity) / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`,
         );
         const message = [
           settings.checkoutMessage,

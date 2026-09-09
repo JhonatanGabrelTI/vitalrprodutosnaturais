@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getRawDb } from '@/db';
 import { isAdminRequest } from '@/lib/admin-auth';
+import { parseProductVariantsInput } from '@/lib/product-variants-server';
 type Input = Record<string, unknown>;
 const clean = (value: unknown) =>
   typeof value === 'string' || typeof value === 'number'
@@ -20,6 +21,25 @@ export async function PUT(
       request.json() as Promise<Input>,
       params,
     ]);
+    let variants;
+    try {
+      variants = parseProductVariantsInput(body.variantsJson);
+    } catch {
+      return NextResponse.json(
+        { error: 'Adicione ao menos uma variação com nome e preço válidos.' },
+        { status: 400 },
+      );
+    }
+    if (!clean(body.name) || !clean(body.slug))
+      return NextResponse.json(
+        { error: 'Nome e slug são obrigatórios.' },
+        { status: 400 },
+      );
+    const primaryVariant = variants[0];
+    const totalStock = variants.reduce(
+      (total, item) => total + Math.max(0, item.stockQty ?? 0),
+      0,
+    );
     const db = getRawDb();
     const now = Date.now();
     await db
@@ -39,18 +59,16 @@ export async function PUT(
         clean(body.brand) || 'Vitale',
         clean(body.sku),
         clean(body.saleType) || 'unit',
-        clean(body.unitLabel) || 'unidade',
-        int(body.priceCents),
-        body.salePriceCents === '' || body.salePriceCents == null
-          ? null
-          : int(body.salePriceCents),
+        primaryVariant.label,
+        primaryVariant.priceCents,
+        primaryVariant.salePriceCents,
         Math.max(1, int(body.minQty, 1)),
         Math.max(1, int(body.maxQty, 99)),
-        Math.max(0, int(body.stockQty)),
+        totalStock,
         Number(Boolean(body.featured)),
         Number(Boolean(body.promotion)),
         Number(body.active !== false),
-        clean(body.variantsJson) || '[]',
+        JSON.stringify(variants),
         now,
         now,
       )

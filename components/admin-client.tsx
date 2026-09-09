@@ -11,6 +11,7 @@ import {
   MessageCircle,
   PackagePlus,
   Pencil,
+  Plus,
   Settings,
   ShoppingBag,
   Tags,
@@ -39,7 +40,7 @@ import {
   NativeSelectOption,
 } from '@/components/ui/native-select';
 import type { Category, Product, StoreSettings } from '@/lib/catalog-data';
-import { money } from '@/lib/catalog-data';
+import { money, productStartingPrice, productStock } from '@/lib/catalog-data';
 
 type Order = {
   id: string;
@@ -56,6 +57,14 @@ type AdminData = {
   orders: Order[];
   demo: boolean;
 };
+type ProductVariantForm = {
+  id: string;
+  label: string;
+  price: string;
+  salePrice: string;
+  stockQty: string;
+  imageUrl: string;
+};
 type ProductForm = {
   id: string;
   name: string;
@@ -69,17 +78,31 @@ type ProductForm = {
   brand: string;
   sku: string;
   saleType: Product['saleType'];
-  unitLabel: string;
-  price: string;
-  salePrice: string;
   minQty: string;
   maxQty: string;
-  stockQty: string;
   featured: boolean;
   promotion: boolean;
   active: boolean;
-  variants: string;
+  variants: ProductVariantForm[];
 };
+type ProductStringField = {
+  [Key in keyof ProductForm]: ProductForm[Key] extends string ? Key : never;
+}[keyof ProductForm];
+
+const createVariantForm = (
+  values: Partial<ProductVariantForm> = {},
+): ProductVariantForm => ({
+  id: crypto.randomUUID(),
+  label: '',
+  price: '',
+  salePrice: '',
+  stockQty: '0',
+  imageUrl: '',
+  ...values,
+});
+
+const moneyInput = (value: number | null | undefined) =>
+  value == null ? '' : String(value / 100).replace('.', ',');
 
 const emptyProduct: ProductForm = {
   id: '',
@@ -94,16 +117,12 @@ const emptyProduct: ProductForm = {
   brand: 'Vitale',
   sku: '',
   saleType: 'unit',
-  unitLabel: 'unidade',
-  price: '',
-  salePrice: '',
   minQty: '1',
   maxQty: '99',
-  stockQty: '0',
   featured: false,
   promotion: false,
   active: true,
-  variants: '',
+  variants: [],
 };
 
 export function AdminClient({
@@ -150,10 +169,33 @@ export function AdminClient({
     setTimeout(() => setMessage(''), 3500);
   };
   const openNew = () => {
-    setProductForm(emptyProduct);
+    setProductForm({
+      ...emptyProduct,
+      variants: [createVariantForm()],
+    });
     setProductOpen(true);
   };
   const openEdit = (product: Product) => {
+    const variants = product.variants.length
+      ? product.variants.map((item, index) =>
+          createVariantForm({
+            label: item.label,
+            price: moneyInput(item.priceCents),
+            salePrice: moneyInput(item.salePriceCents),
+            stockQty: String(
+              item.stockQty ?? (index === 0 ? product.stockQty : 0),
+            ),
+            imageUrl: item.imageUrl || '',
+          }),
+        )
+      : [
+          createVariantForm({
+            label: product.unitLabel,
+            price: moneyInput(product.priceCents),
+            salePrice: moneyInput(product.salePriceCents),
+            stockQty: String(product.stockQty),
+          }),
+        ];
     setProductForm({
       id: product.id,
       name: product.name,
@@ -167,24 +209,12 @@ export function AdminClient({
       brand: product.brand,
       sku: product.sku,
       saleType: product.saleType,
-      unitLabel: product.unitLabel,
-      price: String(product.priceCents / 100).replace('.', ','),
-      salePrice:
-        product.salePriceCents == null
-          ? ''
-          : String(product.salePriceCents / 100).replace('.', ','),
       minQty: String(product.minQty),
       maxQty: String(product.maxQty),
-      stockQty: String(product.stockQty),
       featured: product.featured,
       promotion: product.promotion,
       active: product.active,
-      variants: product.variants
-        .map(
-          (item) =>
-            `${item.label}=${String(item.priceCents / 100).replace('.', ',')}`,
-        )
-        .join('\n'),
+      variants,
     });
     setProductOpen(true);
   };
@@ -192,27 +222,49 @@ export function AdminClient({
     event.preventDefault();
     const parseMoney = (value: string) =>
       Math.round(Number(value.replace(',', '.')) * 100);
-    const variants = productForm.variants
-      .split('\n')
-      .map((line) => line.trim())
-      .filter(Boolean)
-      .map((line) => {
-        const [label, price = '0'] = line.split('=');
-        return {
-          label: label.trim(),
-          quantity: Number(label.replace(/\D/g, '')) || 1,
-          priceCents: parseMoney(price.trim()),
-        };
-      });
+    const variantLabels = productForm.variants.map((item) =>
+      item.label.trim().toLocaleLowerCase('pt-BR'),
+    );
+    const invalidVariant = productForm.variants.find(
+      (item) =>
+        !item.label.trim() ||
+        !item.price.trim() ||
+        !Number.isFinite(Number(item.price.replace(',', '.'))) ||
+        Number(item.price.replace(',', '.')) < 0 ||
+        (item.salePrice.trim() !== '' &&
+          (!Number.isFinite(Number(item.salePrice.replace(',', '.'))) ||
+            Number(item.salePrice.replace(',', '.')) < 0)) ||
+        !Number.isFinite(Number(item.stockQty)) ||
+        Number(item.stockQty) < 0,
+    );
+    const hasDuplicate = variantLabels.some(
+      (label, index) => label && variantLabels.indexOf(label) !== index,
+    );
+    if (!productForm.variants.length || invalidVariant || hasDuplicate) {
+      notify(
+        hasDuplicate
+          ? 'Cada variação precisa ter um nome diferente.'
+          : 'Preencha nome, preço e estoque de todas as variações.',
+      );
+      return;
+    }
+    const variants = productForm.variants.map((item) => ({
+      label: item.label.trim(),
+      quantity: Number(item.label.replace(/\D/g, '')) || 1,
+      priceCents: parseMoney(item.price),
+      salePriceCents: item.salePrice ? parseMoney(item.salePrice) : null,
+      stockQty: Math.max(0, Number(item.stockQty) || 0),
+      imageUrl: item.imageUrl.trim(),
+    }));
+    const primaryVariant = variants[0];
     const payload = {
       ...productForm,
-      priceCents: parseMoney(productForm.price),
-      salePriceCents: productForm.salePrice
-        ? parseMoney(productForm.salePrice)
-        : null,
+      unitLabel: primaryVariant.label,
+      priceCents: primaryVariant.priceCents,
+      salePriceCents: primaryVariant.salePriceCents,
       minQty: Number(productForm.minQty),
       maxQty: Number(productForm.maxQty),
-      stockQty: Number(productForm.stockQty),
+      stockQty: variants.reduce((total, item) => total + item.stockQty, 0),
       variantsJson: JSON.stringify(variants),
     };
     const response = await fetch(
@@ -498,7 +550,10 @@ export function AdminClient({
                     </span>
                     <span>{product.categoryName}</span>
                     <span>
-                      {money(product.salePriceCents ?? product.priceCents)}
+                      {product.variants.length > 1 && (
+                        <small>A partir de </small>
+                      )}
+                      {money(productStartingPrice(product))}
                     </span>
                     <span className="sale-type">
                       {product.saleType === 'weight'
@@ -506,10 +561,15 @@ export function AdminClient({
                         : product.saleType === 'package'
                           ? 'Pacote'
                           : 'Unidade'}
-                      <small>{product.unitLabel}</small>
+                      <small>
+                        {product.variants.length || 1}{' '}
+                        {product.variants.length === 1
+                          ? 'variação'
+                          : 'variações'}
+                      </small>
                     </span>
                     <span className="stock-cell">
-                      <strong>{product.stockQty}</strong>
+                      <strong>{productStock(product)}</strong>
                       <small>
                         {product.saleType === 'weight'
                           ? 'gramas'
@@ -794,14 +854,44 @@ function ProductFormView({
   onSubmit: (event: SyntheticEvent<HTMLFormElement>) => void;
 }) {
   const [imageError, setImageError] = useState('');
-  const field = (key: keyof ProductForm) => ({
-    value: String(form[key]),
+  const field = (key: ProductStringField) => ({
+    value: form[key],
     onChange: (
       event: React.ChangeEvent<
         HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
       >,
     ) => setForm({ ...form, [key]: event.target.value }),
   });
+  const updateVariant = (
+    id: string,
+    key: keyof Omit<ProductVariantForm, 'id'>,
+    value: string,
+  ) =>
+    setForm({
+      ...form,
+      variants: form.variants.map((item) =>
+        item.id === id ? { ...item, [key]: value } : item,
+      ),
+    });
+  const removeVariant = (id: string) =>
+    setForm({
+      ...form,
+      variants: form.variants.filter((item) => item.id !== id),
+    });
+  const uploadVariantImage = (variantId: string, file?: File) => {
+    if (!file) return;
+    if (file.size > 1_500_000) {
+      setImageError('Cada imagem deve ter no máximo 1,5 MB.');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result !== 'string') return;
+      updateVariant(variantId, 'imageUrl', reader.result);
+      setImageError('');
+    };
+    reader.readAsDataURL(file);
+  };
   return (
     <form className="product-form" onSubmit={onSubmit}>
       <div className="form-grid">
@@ -856,40 +946,6 @@ function ProductFormView({
               Pacote / embalagem
             </NativeSelectOption>
           </NativeSelect>
-        </label>
-        <label>
-          Preço base (R$)
-          <input required inputMode="decimal" {...field('price')} />
-        </label>
-        <label>
-          Preço promocional (R$)
-          <input inputMode="decimal" {...field('salePrice')} />
-        </label>
-        <label>
-          Unidade exibida
-          <input
-            required
-            {...field('unitLabel')}
-            placeholder={
-              form.saleType === 'weight'
-                ? 'Ex.: 100 g ou 1 kg'
-                : form.saleType === 'package'
-                  ? 'Ex.: pacote 500 g'
-                  : 'Ex.: unidade ou pote 300 g'
-            }
-          />
-          <small className="field-help">
-            É o formato que o cliente verá na vitrine.
-          </small>
-        </label>
-        <label>
-          Quantidade em estoque
-          <input required type="number" min="0" {...field('stockQty')} />
-          <small className="field-help">
-            {form.saleType === 'weight'
-              ? 'Informe o total em gramas. Ex.: 5000 equivale a 5 kg.'
-              : 'Informe quantas unidades ou pacotes estão disponíveis.'}
-          </small>
         </label>
         <label>
           Quantidade mínima
@@ -971,13 +1027,159 @@ function ProductFormView({
           Informações nutricionais
           <textarea {...field('nutrition')} />
         </label>
-        <label className="full">
-          Tamanhos e preços — uma opção por linha
-          <textarea {...field('variants')} />
-          <small className="field-help">
-            Use o formato “100 g=12,00”, “500 g=49,90” ou “1 kg=89,90”.
-          </small>
-        </label>
+        <section
+          className="variant-editor full"
+          aria-labelledby="variants-title"
+        >
+          <header>
+            <div>
+              <strong id="variants-title">Variações do produto</strong>
+              <p>
+                Reúna sabores, pesos, tamanhos ou embalagens no mesmo produto.
+                Foto, preço e estoque mudam juntos na vitrine.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() =>
+                setForm({
+                  ...form,
+                  variants: [...form.variants, createVariantForm()],
+                })
+              }
+            >
+              <Plus /> Adicionar variação
+            </button>
+          </header>
+          <div className="variant-list">
+            {form.variants.map((variant, index) => {
+              const preview = variant.imageUrl || form.imageUrl;
+              return (
+                <article className="variant-card" key={variant.id}>
+                  <div className="variant-card-head">
+                    <span>
+                      <b>Opção {index + 1}</b>
+                      <small>
+                        {variant.label || 'Sabor, peso, tamanho ou embalagem'}
+                      </small>
+                    </span>
+                    <button
+                      type="button"
+                      disabled={form.variants.length === 1}
+                      onClick={() => removeVariant(variant.id)}
+                      aria-label={`Remover opção ${index + 1}`}
+                    >
+                      <Trash2 />
+                    </button>
+                  </div>
+                  <div className="variant-fields">
+                    <label>
+                      Nome da variação
+                      <input
+                        required
+                        value={variant.label}
+                        onChange={(event) =>
+                          updateVariant(variant.id, 'label', event.target.value)
+                        }
+                        placeholder="Ex.: Chocolate · 900 g"
+                      />
+                    </label>
+                    <label>
+                      Preço normal (R$)
+                      <input
+                        required
+                        inputMode="decimal"
+                        value={variant.price}
+                        onChange={(event) =>
+                          updateVariant(variant.id, 'price', event.target.value)
+                        }
+                        placeholder="Ex.: 129,90"
+                      />
+                    </label>
+                    <label>
+                      Preço promocional (R$)
+                      <input
+                        inputMode="decimal"
+                        value={variant.salePrice}
+                        onChange={(event) =>
+                          updateVariant(
+                            variant.id,
+                            'salePrice',
+                            event.target.value,
+                          )
+                        }
+                        placeholder="Opcional"
+                      />
+                    </label>
+                    <label>
+                      Estoque desta variação
+                      <input
+                        required
+                        type="number"
+                        min="0"
+                        value={variant.stockQty}
+                        onChange={(event) =>
+                          updateVariant(
+                            variant.id,
+                            'stockQty',
+                            event.target.value,
+                          )
+                        }
+                      />
+                    </label>
+                  </div>
+                  <div className="variant-image-field">
+                    <div className="variant-image-preview">
+                      <Image
+                        src={preview || '/vitale-hero.webp'}
+                        alt={`Prévia da opção ${variant.label || index + 1}`}
+                        width={118}
+                        height={96}
+                        unoptimized={
+                          preview.startsWith('data:') ||
+                          preview.startsWith('http')
+                        }
+                      />
+                    </div>
+                    <div>
+                      <strong>Foto desta variação</strong>
+                      <small className="field-help">
+                        Se não escolher outra, será usada a foto principal.
+                      </small>
+                      <label className="image-upload variant-upload">
+                        <ImagePlus /> Escolher imagem
+                        <input
+                          type="file"
+                          accept="image/png,image/jpeg,image/webp"
+                          onChange={(event) =>
+                            uploadVariantImage(
+                              variant.id,
+                              event.target.files?.[0],
+                            )
+                          }
+                        />
+                      </label>
+                      <label className="image-url">
+                        Ou cole uma URL/caminho
+                        <input
+                          value={variant.imageUrl}
+                          onChange={(event) =>
+                            updateVariant(
+                              variant.id,
+                              'imageUrl',
+                              event.target.value,
+                            )
+                          }
+                        />
+                      </label>
+                    </div>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+          {imageError && <small className="field-error">{imageError}</small>}
+        </section>
         <div className="checks full">
           <label>
             <input

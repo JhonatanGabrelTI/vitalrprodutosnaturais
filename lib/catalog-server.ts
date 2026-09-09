@@ -60,7 +60,30 @@ export async function readCatalog(
 export function mapProductRow(row: Row): Product {
   let variants: Product['variants'] = [];
   try {
-    variants = JSON.parse(text(row.variants_json, '[]'));
+    const parsed = JSON.parse(text(row.variants_json, '[]')) as unknown;
+    variants = Array.isArray(parsed)
+      ? parsed
+          .map((value) => {
+            const item = value as Record<string, unknown>;
+            const label = text(item.label).trim();
+            if (!label) return null;
+            return {
+              label,
+              quantity: Math.max(1, number(item.quantity, 1)),
+              priceCents: Math.max(0, number(item.priceCents)),
+              salePriceCents:
+                item.salePriceCents == null
+                  ? null
+                  : Math.max(0, number(item.salePriceCents)),
+              stockQty:
+                item.stockQty == null
+                  ? null
+                  : Math.max(0, number(item.stockQty)),
+              imageUrl: text(item.imageUrl),
+            };
+          })
+          .filter((item): item is NonNullable<typeof item> => Boolean(item))
+      : [];
   } catch {
     variants = [];
   }

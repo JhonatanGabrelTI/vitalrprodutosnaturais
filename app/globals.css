@@ -1281,6 +1281,10 @@ footer > span {
 .detail-price strong {
   font-size: 1.7rem;
 }
+.detail-price del {
+  color: #8a948c;
+  font-size: 0.9rem;
+}
 .detail-price small {
   color: #69746b;
 }
@@ -3477,6 +3481,147 @@ footer {
   color: #52635a;
   font-size: 0.75rem;
 }
+.variant-editor {
+  display: grid;
+  gap: 16px;
+  margin-top: 4px;
+  padding: 20px;
+  border: 1px solid #dce8df;
+  border-radius: 18px;
+  background: #f4f8f5;
+}
+.variant-editor > header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+.variant-editor > header > div {
+  display: grid;
+  gap: 5px;
+}
+.variant-editor > header strong {
+  color: #20382a;
+  font-size: 1rem;
+}
+.variant-editor > header p {
+  max-width: 570px;
+  margin: 0;
+  color: #6d7970;
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+.variant-editor > header > button {
+  min-height: 42px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 15px;
+  border: 0;
+  border-radius: 11px;
+  color: white;
+  background: #217a42;
+  font-size: 0.78rem;
+  font-weight: 800;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.variant-editor > header > button svg {
+  width: 17px;
+}
+.variant-list {
+  display: grid;
+  gap: 14px;
+}
+.variant-card {
+  display: grid;
+  gap: 16px;
+  padding: 17px;
+  border: 1px solid #d9e5dd;
+  border-radius: 15px;
+  background: white;
+  box-shadow: 0 10px 28px rgba(41, 75, 51, 0.05);
+}
+.variant-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e7ece8;
+}
+.variant-card-head > span {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+.variant-card-head b {
+  color: #215d35;
+  font-size: 0.85rem;
+}
+.variant-card-head small {
+  overflow: hidden;
+  color: #79837b;
+  font-size: 0.72rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.variant-card-head button {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid #ead9d9;
+  border-radius: 10px;
+  color: #a64b4b;
+  background: #fff8f8;
+  cursor: pointer;
+}
+.variant-card-head button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+.variant-card-head button svg {
+  width: 16px;
+}
+.variant-fields {
+  display: grid;
+  grid-template-columns: 1.4fr repeat(3, 1fr);
+  gap: 12px;
+}
+.variant-image-field {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 14px;
+  align-items: start;
+  padding-top: 2px;
+}
+.variant-image-field > div:last-child {
+  display: grid;
+  gap: 8px;
+}
+.variant-image-field > div:last-child > strong {
+  color: #405347;
+  font-size: 0.78rem;
+}
+.variant-image-preview {
+  overflow: hidden;
+  border: 1px solid #dce6df;
+  border-radius: 12px;
+  background: #eaf4ee;
+}
+.variant-image-preview img {
+  width: 100%;
+  height: 96px;
+  object-fit: cover;
+}
+.variant-upload {
+  min-height: 36px;
+  padding-inline: 12px;
+  font-size: 0.74rem !important;
+}
 @media (max-width: 1150px) {
   .admin-main > header {
     align-items: flex-start;
@@ -3502,6 +3647,23 @@ footer {
   }
   .category-actions {
     grid-column: 1 / -1;
+  }
+  .variant-editor {
+    padding: 14px;
+  }
+  .variant-editor > header {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .variant-editor > header > button {
+    width: 100%;
+  }
+  .variant-fields,
+  .variant-image-field {
+    grid-template-columns: 1fr;
+  }
+  .variant-image-preview {
+    width: min(100%, 240px);
   }
 }
 @media (prefers-reduced-motion: reduce) {

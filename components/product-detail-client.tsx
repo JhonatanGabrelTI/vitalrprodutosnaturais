@@ -14,7 +14,15 @@ import {
   NativeSelect,
   NativeSelectOption,
 } from '@/components/ui/native-select';
-import { money, type Product, type StoreSettings } from '@/lib/catalog-data';
+import {
+  money,
+  productVariants,
+  variantImage,
+  variantPrice,
+  variantStock,
+  type Product,
+  type StoreSettings,
+} from '@/lib/catalog-data';
 import { useCart } from '@/lib/cart';
 import { SiteHeader } from './site-header';
 import { CartSheet } from './cart-sheet';
@@ -27,21 +35,16 @@ export function ProductDetailClient({
   settings: StoreSettings;
 }) {
   const cart = useCart();
-  const variants = product.variants.length
-    ? product.variants
-    : [
-        {
-          label: product.unitLabel,
-          quantity: 1,
-          priceCents: product.salePriceCents ?? product.priceCents,
-        },
-      ];
+  const variants = productVariants(product);
   const [variantIndex, setVariantIndex] = useState(0);
   const [quantity, setQuantity] = useState(product.minQty || 1);
   const variant = variants[variantIndex];
+  const currentPrice = variantPrice(variant);
+  const currentImage = variantImage(product, variant);
+  const currentStock = variantStock(product, variant);
   const add = () => cart.addItem(product, variant, quantity);
   const buyNow = async () => {
-    const message = `${settings.checkoutMessage}\n\n• ${quantity}x ${product.name} — ${variant.label} — ${money(variant.priceCents * quantity)}\n\nTotal estimado: ${money(variant.priceCents * quantity)}`;
+    const message = `${settings.checkoutMessage}\n\n• ${quantity}x ${product.name} — ${variant.label} — ${money(currentPrice * quantity)}\n\nTotal estimado: ${money(currentPrice * quantity)}`;
     const phone = settings.whatsapp.replace(/\D/g, '');
     if (phone)
       window.open(
@@ -66,17 +69,20 @@ export function ProductDetailClient({
         <div className="detail-grid">
           <div className="detail-image">
             <Image
-              src={product.imageUrl || '/vitale-hero.webp'}
-              alt={product.name}
+              key={currentImage}
+              src={currentImage}
+              alt={`${product.name} — ${variant.label}`}
               fill
               priority
               unoptimized={
-                product.imageUrl.startsWith('data:') ||
-                product.imageUrl.startsWith('http')
+                currentImage.startsWith('data:') ||
+                currentImage.startsWith('http')
               }
               sizes="(max-width: 800px) 100vw, 50vw"
             />
-            {product.promotion && <span>Oferta</span>}
+            {(product.promotion || variant.salePriceCents != null) && (
+              <span>Oferta</span>
+            )}
           </div>
           <div className="detail-copy">
             <span className="eyebrow green">{product.categoryName}</span>
@@ -84,26 +90,40 @@ export function ProductDetailClient({
             <p className="lead">{product.shortDescription}</p>
             <div className="availability">
               <Check size={16} />{' '}
-              {product.stockQty > 0
-                ? 'Disponível para pedido'
+              {currentStock > 0
+                ? `${currentStock} em estoque nesta opção`
                 : 'Indisponível no momento'}
             </div>
             <div className="detail-price">
-              <strong>{money(variant.priceCents)}</strong>
+              {variant.salePriceCents != null &&
+                variant.salePriceCents < variant.priceCents && (
+                  <del>{money(variant.priceCents)}</del>
+                )}
+              <strong>{money(currentPrice)}</strong>
               <small>por {variant.label}</small>
             </div>
             <label htmlFor="product-variant">
-              Escolha a medida
+              Escolha o sabor, tamanho ou opção
               <NativeSelect
                 id="product-variant"
                 value={variantIndex}
-                onChange={(event) =>
-                  setVariantIndex(Number(event.target.value))
-                }
+                onChange={(event) => {
+                  const nextIndex = Number(event.target.value);
+                  const nextStock = variantStock(product, variants[nextIndex]);
+                  setVariantIndex(nextIndex);
+                  setQuantity((current) =>
+                    nextStock < product.minQty
+                      ? product.minQty
+                      : Math.max(
+                          product.minQty,
+                          Math.min(current, product.maxQty, nextStock),
+                        ),
+                  );
+                }}
               >
                 {variants.map((item, index) => (
                   <NativeSelectOption key={item.label} value={index}>
-                    {item.label} — {money(item.priceCents)}
+                    {item.label} — {money(variantPrice(item))}
                   </NativeSelectOption>
                 ))}
               </NativeSelect>
@@ -122,7 +142,9 @@ export function ProductDetailClient({
                 <span>{quantity}</span>
                 <button
                   onClick={() =>
-                    setQuantity(Math.min(product.maxQty, quantity + 1))
+                    setQuantity(
+                      Math.min(product.maxQty, currentStock, quantity + 1),
+                    )
                   }
                   aria-label="Aumentar"
                 >
@@ -131,12 +153,12 @@ export function ProductDetailClient({
               </div>
             </div>
             <div className="detail-actions">
-              <button disabled={product.stockQty <= 0} onClick={add}>
+              <button disabled={currentStock <= 0} onClick={add}>
                 <ShoppingBag /> Adicionar ao carrinho
               </button>
               <button
                 className="whatsapp-outline"
-                disabled={product.stockQty <= 0}
+                disabled={currentStock <= 0}
                 onClick={buyNow}
               >
                 <MessageCircle /> Comprar pelo WhatsApp

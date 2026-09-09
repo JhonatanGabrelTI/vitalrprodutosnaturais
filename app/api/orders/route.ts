@@ -1,6 +1,11 @@
 import { NextResponse } from 'next/server';
 import { getRawDb } from '@/db';
 import { readCatalog } from '@/lib/catalog-server';
+import {
+  productVariants,
+  variantPrice,
+  variantStock,
+} from '@/lib/catalog-data';
 
 type SubmittedItem = {
   productId?: string;
@@ -28,23 +33,28 @@ export async function POST(request: Request) {
         (item) => item.id === submitted.productId && item.active,
       );
       if (!product) throw new Error('Produto indisponível.');
-      const variant = product.variants.find(
-        (item) => item.label === submitted.variantLabel,
-      ) ||
-        product.variants[0] || {
-          label: product.unitLabel,
-          quantity: 1,
-          priceCents: product.salePriceCents ?? product.priceCents,
-        };
+      const variants = productVariants(product);
+      const variant =
+        variants.find((item) => item.label === submitted.variantLabel) ||
+        variants[0];
+      const available = variantStock(product, variant);
+      if (available < product.minQty)
+        throw new Error(`${variant.label} está sem estoque.`);
       const quantity = Math.max(
         product.minQty,
-        Math.min(product.maxQty, Math.trunc(Number(submitted.quantity) || 1)),
+        Math.min(
+          product.maxQty,
+          available,
+          Math.trunc(Number(submitted.quantity) || 1),
+        ),
       );
+      const unitPriceCents = variantPrice(variant);
       return {
         product,
         variant,
         quantity,
-        lineTotalCents: variant.priceCents * quantity,
+        unitPriceCents,
+        lineTotalCents: unitPriceCents * quantity,
       };
     });
     const db = getRawDb();
@@ -79,7 +89,7 @@ export async function POST(request: Request) {
             item.product.name,
             item.variant.label,
             item.quantity,
-            item.variant.priceCents,
+            item.unitPriceCents,
             item.lineTotalCents,
           ),
       ),
